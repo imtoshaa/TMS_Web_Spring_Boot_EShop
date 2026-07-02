@@ -1,11 +1,9 @@
 package by.teachmeskills.eshop.dao.impl;
 
-import by.teachmeskills.eshop.dao.IOrderDetailsDao;
+import by.teachmeskills.eshop.dao.IOrderDetailsRepository;
 import by.teachmeskills.eshop.domain.entities.OrderDetails;
 import by.teachmeskills.eshop.domain.entities.User;
 import lombok.AllArgsConstructor;
-import org.hibernate.Session;
-import org.hibernate.SessionFactory;
 import org.springframework.stereotype.Repository;
 
 import javax.persistence.EntityManager;
@@ -17,7 +15,7 @@ import java.util.List;
 @AllArgsConstructor
 @Repository
 @Transactional
-public class OrderDetailsDaoImpl implements IOrderDetailsDao {
+public class OrderDetailsRepositorympl implements IOrderDetailsRepository {
 
     @PersistenceContext
     private EntityManager entityManager;

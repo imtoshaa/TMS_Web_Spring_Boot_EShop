@@ -1,6 +1,6 @@
 package by.teachmeskills.eshop.dao.impl;
 
-import by.teachmeskills.eshop.dao.IUserDao;
+import by.teachmeskills.eshop.dao.IUserRepository;
 import by.teachmeskills.eshop.domain.entities.User;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -17,7 +17,7 @@ import java.util.List;
 @AllArgsConstructor
 @Repository
 @Transactional
-public class UserDaoImpl implements IUserDao {
+public class UserRepositoryImpl implements IUserRepository {
 
     @PersistenceContext
     private EntityManager entityManager;
@@ -30,20 +30,6 @@ public class UserDaoImpl implements IUserDao {
     @Override
     public List<User> read() throws Exception {
         return entityManager.createQuery("select с from Category с ").getResultList();
-    }
-
-    @Override
-    public void update(User user) throws Exception {
-        entityManager.merge(user);
-    }
-
-    @Override
-    public void delete(User user) throws Exception {
-        if (entityManager.contains(user)) {
-            entityManager.remove(user);
-        } else {
-            entityManager.remove(entityManager.merge(user));
-        }
     }
 
     @Override
@@ -77,5 +63,10 @@ public class UserDaoImpl implements IUserDao {
             return true;
         }
         return false;
+    }
+
+    @Override
+    public User findById(int id) {
+        return entityManager.find(User.class, id);
     }
 }

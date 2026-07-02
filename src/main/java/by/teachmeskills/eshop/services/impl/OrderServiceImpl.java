@@ -1,7 +1,7 @@
 package by.teachmeskills.eshop.services.impl;
 
-import by.teachmeskills.eshop.dao.IOrderDao;
-import by.teachmeskills.eshop.dao.IOrderDetailsDao;
+import by.teachmeskills.eshop.dao.IOrderRepository;
+import by.teachmeskills.eshop.dao.IOrderDetailsRepository;
 import by.teachmeskills.eshop.domain.entities.Order;
 import by.teachmeskills.eshop.domain.entities.OrderDetails;
 import by.teachmeskills.eshop.domain.entities.OrderDetailsId;
@@ -11,8 +11,6 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 @Slf4j
@@ -20,8 +18,8 @@ import java.util.Set;
 @Service
 public class OrderServiceImpl implements IOrderService {
 
-    private final IOrderDao orderDao;
-    private final IOrderDetailsDao orderDetailsDao;
+    private final IOrderRepository orderDao;
+    private final IOrderDetailsRepository orderDetailsDao;
 
     @Override
     public Set<Order> getUserOrderById(int userId) throws Exception {

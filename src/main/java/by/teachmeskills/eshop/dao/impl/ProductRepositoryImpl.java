@@ -1,6 +1,6 @@
 package by.teachmeskills.eshop.dao.impl;
 
-import by.teachmeskills.eshop.dao.IProductDao;
+import by.teachmeskills.eshop.dao.IProductRepository;
 import by.teachmeskills.eshop.domain.entities.Product;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Repository;
@@ -14,7 +14,7 @@ import java.util.List;
 @AllArgsConstructor
 @Repository
 @Transactional
-public class ProductDaoImpl implements IProductDao {
+public class ProductRepositoryImpl implements IProductRepository {
 
     @PersistenceContext
     private EntityManager entityManager;
@@ -27,20 +27,6 @@ public class ProductDaoImpl implements IProductDao {
     @Override
     public List<Product> read() throws Exception {
         return entityManager.createQuery("select r from Order r ").getResultList();
-    }
-
-    @Override
-    public void update(Product product) throws Exception {
-        entityManager.merge(product);
-    }
-
-    @Override
-    public void delete(Product product) throws Exception {
-        if (entityManager.contains(product)) {
-            entityManager.remove(product);
-        } else {
-            entityManager.remove(entityManager.merge(product));
-        }
     }
 
     @Override

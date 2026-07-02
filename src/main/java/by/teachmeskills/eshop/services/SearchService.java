@@ -1,11 +1,13 @@
 package by.teachmeskills.eshop.services;
 
-import by.teachmeskills.eshop.dao.IProductDao;
+import by.teachmeskills.eshop.dao.IProductRepository;
 import by.teachmeskills.eshop.domain.entities.Product;
+import by.teachmeskills.eshop.dto.ProductDto;
+import by.teachmeskills.eshop.dto.converters.ProductConverter;
 import lombok.AllArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.ui.ModelMap;
-import org.springframework.web.servlet.ModelAndView;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -13,22 +15,24 @@ import java.util.List;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import static by.teachmeskills.eshop.utils.PagesPathEnum.SEARCH_PAGE;
-import static by.teachmeskills.eshop.utils.EshopConstants.PRODUCTS_FROM_SEARCH;
+import java.util.stream.Collectors;
 
 @Service
 @AllArgsConstructor
 public class SearchService {
 
-    private final IProductDao productDao;
+    private final IProductRepository productDao;
+    private final ProductConverter productConverter;
 
-    public ModelAndView getSearchResult(String searchQuery) throws Exception {
-            ModelMap modelMap = new ModelMap();
+    public ResponseEntity<List<ProductDto>> getSearchResult(String searchQuery) throws Exception {
+        try {
             List<Product> allProducts = productDao.read();
             List<Product> searchResult = new ArrayList<>(searchProducts(allProducts, searchQuery));
-            modelMap.addAttribute(PRODUCTS_FROM_SEARCH, searchResult);
-            return new ModelAndView(SEARCH_PAGE.getPath(), modelMap);
+            return new ResponseEntity<>(searchResult.stream()
+                    .map(productConverter::toDto).collect(Collectors.toList()), HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
     }
 
     private Set<Product> searchProducts(List<Product> allProducts, String query) {

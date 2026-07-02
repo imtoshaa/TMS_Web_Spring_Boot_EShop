@@ -5,7 +5,7 @@ import by.teachmeskills.eshop.domain.entities.User;
 
 import java.util.List;
 
-public interface IOrderDetailsDao {
+public interface IOrderDetailsRepository {
     void saveOrderDetails(OrderDetails orderDetails);
 
     List<OrderDetails> getOrderDetails(User user);

@@ -1,44 +1,32 @@
 package by.teachmeskills.eshop.services.impl;
 
-import by.teachmeskills.eshop.dao.IProductDao;
-import by.teachmeskills.eshop.dao.impl.ProductDaoImpl;
-import by.teachmeskills.eshop.domain.entities.Product;
+import by.teachmeskills.eshop.dao.IProductRepository;
+import by.teachmeskills.eshop.dto.ProductDto;
+import by.teachmeskills.eshop.dto.converters.ProductConverter;
 import by.teachmeskills.eshop.services.IProductService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.ui.ModelMap;
-import org.springframework.web.servlet.ModelAndView;
 
-import java.util.List;
-
-import static by.teachmeskills.eshop.utils.PagesPathEnum.PRODUCT_PAGE;
-import static by.teachmeskills.eshop.utils.EshopConstants.PRODUCT;
+import java.util.Optional;
 
 @Slf4j
 @AllArgsConstructor
 @Service
 public class ProductServiceImpl implements IProductService {
 
-    private final IProductDao productDao;
+    private final IProductRepository productDao;
+    private final ProductConverter productConverter;
 
     @Override
-    public List<Product> getProductsByCategoryId(int categoryId) throws Exception {
-        log.info("Receiving products by categoryId=" + categoryId + " in the process.");
-        return productDao.getProductsByCategoryId(categoryId);
-    }
-
-    @Override
-    public Product getProductById(int productId) throws Exception {
-        log.info("Receiving product by id=" + productId + " in the process.");
-        return productDao.getProductById(productId);
-    }
-
-    @Override
-    public ModelAndView getProductData(int productId) throws Exception {
-        ModelMap modelMap = new ModelMap();
-        modelMap.addAttribute(PRODUCT, productDao.getProductById(productId));
+    public ResponseEntity<ProductDto> getProductData(int productId) throws Exception {
+        ProductDto product = productConverter.toDto(productDao.getProductById(productId));
         log.info("Receiving product data by id=" + productId + " in the process.");
-        return new ModelAndView(PRODUCT_PAGE.getPath(), modelMap);
+        if (Optional.ofNullable(product).isPresent()) {
+            return new ResponseEntity<>(product, HttpStatus.OK);
+        }
+        return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
     }
 }

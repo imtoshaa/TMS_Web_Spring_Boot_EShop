@@ -1,67 +1,79 @@
 package by.teachmeskills.eshop.services;
 
-import by.teachmeskills.eshop.dao.IProductDao;
+import by.teachmeskills.eshop.dao.IProductRepository;
 import by.teachmeskills.eshop.domain.Cart;
 import by.teachmeskills.eshop.domain.entities.Order;
 import by.teachmeskills.eshop.domain.entities.Product;
 import by.teachmeskills.eshop.domain.entities.User;
+import by.teachmeskills.eshop.dto.ProductDto;
+import by.teachmeskills.eshop.dto.converters.ProductConverter;
 import lombok.AllArgsConstructor;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.ui.ModelMap;
-import org.springframework.web.servlet.ModelAndView;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
-
-import static by.teachmeskills.eshop.utils.PagesPathEnum.CART_PAGE;
-import static by.teachmeskills.eshop.utils.PagesPathEnum.SIGN_IN_PAGE;
-import static by.teachmeskills.eshop.utils.EshopConstants.SHOPPING_CART_PRODUCTS;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 @AllArgsConstructor
 @Service
+@Slf4j
 public class CartService {
 
-    private final IProductDao productDao;
+    private final IProductRepository productDao;
     private final IUserService userService;
     private final IOrderService orderService;
+    private final ProductConverter productConverter;
 
-    private static final Logger log = LogManager.getLogger(CartService.class);
-
-    public ModelAndView openCart(Cart cart) {
-        ModelMap modelMap = new ModelMap();
-        modelMap.addAttribute(SHOPPING_CART_PRODUCTS, cart.getProducts());
-        log.info("Redirect to shopping cart.");
-        return new ModelAndView(CART_PAGE.getPath(), modelMap);
+    public ResponseEntity<List<ProductDto>> openCart(Cart cart) throws Exception {
+        try {
+        List<ProductDto> dtoList = cart.getProducts().values().stream()
+                .map(productConverter::toDto).toList();
+            return new ResponseEntity<>(dtoList, HttpStatus.OK);
+        } catch (Exception e){
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
     }
 
-    public ModelAndView addProductToCart(Cart cart, int productId) throws Exception {
-        ModelMap modelMap = new ModelMap();
-        cart.addProduct(productDao.getProductById(productId));
-        modelMap.addAttribute(SHOPPING_CART_PRODUCTS, cart.getProducts());
-        log.info("Product was added to cart");
-        return new ModelAndView(CART_PAGE.getPath(), modelMap);
+    public ResponseEntity<List<ProductDto>> addProductToCart(Cart cart, int productId) throws Exception {
+        Product product = productDao.getProductById(productId);
+        if (Optional.ofNullable(product).isPresent()) {
+            log.info("Product was added to cart");
+            return new ResponseEntity<>(cart.getProducts().values().stream()
+                    .map(productConverter::toDto)
+                    .collect(Collectors.toList()), HttpStatus.OK);
+        } else {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
     }
 
-    public ModelAndView removeProduct(Cart cart, int removeId) {
-        ModelMap modelMap = new ModelMap();
-        cart.removeProduct(removeId);
-        modelMap.addAttribute(SHOPPING_CART_PRODUCTS, cart.getProducts());
-        log.info("Product was deleted from cart.");
-        return new ModelAndView(CART_PAGE.getPath(), modelMap);
+    public ResponseEntity<List<ProductDto>> removeProduct(Cart cart, int removeId) {
+        if (cart.getProducts().get(removeId) == null) {
+            return new ResponseEntity<>(cart.getProducts().values().stream()
+                    .map(productConverter::toDto)
+                    .collect(Collectors.toList()), HttpStatus.BAD_REQUEST);
+        } else {
+            cart.removeProduct(removeId);
+            log.info("Product was deleted from cart.");
+            return new ResponseEntity<>(cart.getProducts().values().stream()
+                    .map(productConverter::toDto)
+                    .collect(Collectors.toList()), HttpStatus.OK);
+        }
     }
 
-    public ModelAndView clearCart(Cart cart) {
-        ModelMap modelMap = new ModelMap();
+    public ResponseEntity<List<ProductDto>> clearCart(Cart cart) {
         cart.clear();
-        modelMap.addAttribute(SHOPPING_CART_PRODUCTS, cart.getProducts());
         log.info("Shopping cart has been cleared!");
-        return new ModelAndView(CART_PAGE.getPath(), modelMap);
+        return new ResponseEntity<>(cart.getProducts().values().stream()
+                .map(productConverter::toDto)
+                .collect(Collectors.toList()), HttpStatus.OK);
     }
 
-    public ModelAndView confirmOrder(Cart cart, User user) throws Exception {
-        ModelMap modelMap = new ModelMap();
+    public ResponseEntity<List<ProductDto>> confirmOrder(Cart cart, User user) throws Exception {
         if (user != null && userService.isAuthenticated(user)) {
             Date orderDate = new Date();
             SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
@@ -75,11 +87,14 @@ public class CartService {
                 orderService.create(order, product);
             }
             cart.clear();
-            modelMap.addAttribute(SHOPPING_CART_PRODUCTS, cart.getProducts());
             log.info("Order is made!");
+            return new ResponseEntity<>(cart.getProducts().values().stream()
+                    .map(productConverter::toDto)
+                    .collect(Collectors.toList()), HttpStatus.OK);
         } else {
-            return new ModelAndView(SIGN_IN_PAGE.getPath());
+            return new ResponseEntity<>(cart.getProducts().values().stream()
+                    .map(productConverter::toDto)
+                    .collect(Collectors.toList()), HttpStatus.BAD_REQUEST);
         }
-        return new ModelAndView(CART_PAGE.getPath(), modelMap);
     }
 }
